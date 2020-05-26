@@ -3,6 +3,11 @@ uuid = "7dfbcec8-1e34-4b93-9ead-7582bd5d35de"
 authors = ["Chris Bartak <cbartak@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+Crayons = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
+InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
+
 [compat]
 julia = "1"
 
