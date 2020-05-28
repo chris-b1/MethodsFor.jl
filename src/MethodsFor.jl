@@ -6,7 +6,6 @@ using DataStructures: DefaultDict
 using InteractiveUtils: methodswith
 using Crayons: Crayon
 
-
 struct MethodInfo
     name::Symbol
     def_mod::Module
@@ -16,26 +15,15 @@ end
 const method_color = Crayon(foreground=:light_yellow)
 const module_color = Crayon(foreground=:light_cyan)
 
-
-#const numcols = 2
-
-"""
-    methodsfor(type_or_val)
-
-Pretty print list of exported methods that take a `type_or_val`
-from currently available modules.  
-"""
-function methodsfor(::Type{T}) where {T}
-    # todo - parametize/infer, use IOContext
-    colwidth = 45
-
-    methods = methodswith(T; supertypes=true)
+function _groupmethods(methods::Array{Method}, q)
     exported = Dict{MethodInfo, Int}()
     method_dct = DefaultDict(() -> DefaultDict(() -> 0))
 
-    # not_exported = Dict{MethodInfo, Int}()
-
     for method in methods
+        if !isnothing(q) && !occursin(q, string(method.name))
+            continue
+        end
+
         sig = Base.unwrap_unionall(method.sig)
         generic_fx_mod = sig.types[1].name.module
 
@@ -49,8 +37,13 @@ function methodsfor(::Type{T}) where {T}
         end
     end
 
+    return method_dct
+end
 
-    group_lengths = Dict( (k, length(method_dct[k])) for k in keys(method_dct) )
+function _printmethods(method_dct)
+    colwidth = 45
+
+    group_lengths = Dict((k, length(method_dct[k])) for k in keys(method_dct))
     ordered_keys = sort(collect(keys(group_lengths)), by=x->group_lengths[x]; rev=true)
 
     cols = [[], []]
@@ -82,12 +75,21 @@ function methodsfor(::Type{T}) where {T}
         two = col_text(2, row)
         println(one, two)
     end
-    return
-
-    return coltexts
-    # return method_dct
 end
-methodsfor(val) = methodsfor(typeof(val))
 
+
+"""
+    methodsfor(type_or_val[, module]; q=nothing, supertypes=true)
+
+Pretty print list of exported methods that take a `type_or_val`
+from currently available modules
+"""
+function methodsfor(::Type{T}; q=nothing, supertypes=true) where {T}
+    methods = methodswith(T; supertypes=supertypes)
+    method_dct = _groupmethods(methods, q)
+    _printmethods(method_dct)
+    return nothing
+end
+methodsfor(val; kwargs...) = methodsfor(typeof(val); kwargs...)
 
 end
